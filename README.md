@@ -1,9 +1,48 @@
-# AI CREW · Netlify
-## Yöntem A: GitHub (en kolayı)
-1. Bu klasörü bir GitHub deposuna yükle (`.env` yok, anahtar içermez).
-2. Netlify > Add new site > Import from Git > depoyu seç. Build command boş, publish `public` (netlify.toml zaten ayarlı).
-3. Site configuration > Environment variables: ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, OPENAI_MODEL, GEMINI_MODEL, ANTHROPIC_MODEL, ACCESS_CODE (ZORUNLU).
-4. Deploys > Trigger deploy. Değişkenler deploy'da devreye girer.
-## Yöntem B: CLI
-npm i -g netlify-cli && netlify login && netlify init && netlify env:set ACCESS_CODE "kodun" (diğerleri de aynı) && netlify deploy --prod
-Not: Netlify Drop (sürükle-bırak) fonksiyon çalıştırmaz, kullanma.
+# AI CREW 3D
+
+Mevcut AI CREW Netlify projesine 3D asset generation katmanı eklenmiş sürüm.
+
+## Environment variables
+
+Mevcut değişkenlere ek olarak:
+
+- `MESHY_API_KEY` — 3D model üretim sağlayıcısı için
+- `ACCESS_CODE` — mevcut erişim kodu
+- `CREW_GEMINI_KEY`
+- `CREW_OPENAI_KEY`
+- `CREW_ANTHROPIC_KEY`
+
+Model değişkenleri de kullanılabilir:
+
+- `GEMINI_MODEL`
+- `GEMINI_FALLBACK`
+- `OPENAI_MODEL`
+- `ANTHROPIC_MODEL`
+
+## Endpoints
+
+- `GET /api/turn`
+- `POST /api/turn`
+- `GET /api/generate-3d`
+- `POST /api/generate-3d`
+- `GET /api/asset-status?taskId=...`
+
+## 3D akışı
+
+1. Frontend `/api/generate-3d` çağırır.
+2. Netlify Function, Meshy'ye text-to-3D task gönderir.
+3. Task ID döner.
+4. `/api/asset-status` ile durum takip edilir.
+5. Tamamlandığında GLB URL döner.
+
+API anahtarları tarayıcıya gönderilmez.
+
+## Deploy
+
+Netlify'da Environment Variables'a `MESHY_API_KEY` ekleyin ve yeniden deploy edin.
+
+`public/index.html` doğrudan test panelidir.
+
+## Not
+
+3D sağlayıcının API sözleşmesi/model isimleri zaman içinde değişebilir. Bu sürüm sağlayıcının mevcut Text-to-3D v2 endpoint biçimini hedefler; API hata verirse function ham provider yanıtını döndürür.

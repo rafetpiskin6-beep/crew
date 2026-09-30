@@ -1,1 +1,12 @@
-{"name":"ai-crew-netlify","version":"1.0.0","private":true,"type":"module"}
+{
+  "name": "ai-crew-3d",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "netlify-cli": "^23.0.0"
+  }
+}
