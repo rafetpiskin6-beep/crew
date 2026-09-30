@@ -9,9 +9,14 @@ const call = {
   openai: async (q, e) => (await (await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST',
     headers: { authorization: 'Bearer ' + e.OPENAI_API_KEY, 'content-type': 'application/json' },
     body: JSON.stringify({ model: e.OPENAI_MODEL || 'gpt-5.6-luna', max_completion_tokens: MAX, messages: [{ role: 'user', content: q }] }) })).json()).choices?.[0]?.message?.content,
-  gemini: async (q, e) => (await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${e.GEMINI_MODEL || 'gemini-flash-latest'}:generateContent`, { method: 'POST',
-    headers: { 'x-goog-api-key': e.GEMINI_API_KEY, 'content-type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: q }] }], generationConfig: { maxOutputTokens: MAX } }) })).json()).candidates?.[0]?.content?.parts?.[0]?.text,
+  gemini: async (q, e) => {
+    const d = await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${e.GEMINI_MODEL || 'gemini-flash-latest'}:generateContent`, { method: 'POST',
+      headers: { 'x-goog-api-key': e.GEMINI_API_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: q }] }], generationConfig: { maxOutputTokens: 2048 } }) })).json();
+    const t = (d.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+    if (!t) throw new Error(d.error?.message || 'finish=' + (d.candidates?.[0]?.finishReason || d.promptFeedback?.blockReason || 'bos'));
+    return t;
+  },
 };
 export default async (req, _ctx, env = process.env) => {
   if (req.method !== 'POST') return J({ error: 'method' }, 405);
@@ -27,6 +32,6 @@ export default async (req, _ctx, env = process.env) => {
     if (!use) return J({ error: 'no_key_' + provider }, 503);
     const text = await call[use](prompt, env);
     return text ? J({ text }) : J({ error: 'empty_response' }, 502);
-  } catch { return J({ error: 'server_error' }, 500); }
+  } catch (err) { return J({ error: 'server_error: ' + String(err.message).slice(0, 150) }, 500); }
 };
 export const config = { path: '/api/turn' };
