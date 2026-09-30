@@ -26,12 +26,12 @@ const call = {
 };
 export default async (req, _ctx, env = process.env) => {
   // Tarayıcıda adresi açınca sürümü ve hangi anahtarların tanımlı olduğunu (değerleri değil) gösterir.
-  if (req.method === 'GET') return J({ surum: 6, access_code: !!env.ACCESS_CODE, anahtarlar: Object.fromEntries(Object.entries(keyOf).map(([k, v]) => [k, !!env[v]])), gemini_model: env.GEMINI_MODEL || 'gemini-flash-latest' });
+  if (req.method === 'GET') return J({ surum: 7, access_code: !!env.ACCESS_CODE, anahtarlar: Object.fromEntries(Object.entries(keyOf).map(([k, v]) => [k, !!env[v]])), gemini_model: env.GEMINI_MODEL || 'gemini-flash-latest' });
   if (req.method !== 'POST') return J({ error: 'method' }, 405);
   if (!env.ACCESS_CODE) return J({ error: 'no_access_code_configured' }, 503);
   if (req.headers.get('x-access-code') !== env.ACCESS_CODE) return J({ error: 'unauthorized' }, 401);
   try {
-    const raw = await req.text(); if (raw.length > 20000) return J({ error: 'too_large' }, 413);
+    const raw = await req.text(); if (raw.length > 80000) return J({ error: 'too_large' }, 413);
     const { provider, prompt, max } = JSON.parse(raw); const mx = Math.min(Math.max(+max || 0, 0), 6000);
     if (!call[provider] || typeof prompt !== 'string') return J({ error: 'bad_request' }, 400);
     const use = env[keyOf[provider]] ? provider : Object.keys(keyOf).find(k => env[keyOf[k]]);
